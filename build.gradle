@@ -30,7 +30,6 @@ dependencies {
     compile 'com.googlecode.xmemcached:xmemcached:2.3.2'
     compile 'com.google.guava:guava:22.0'
 
-
     // Use JUnit test framework
     testCompile 'junit:junit:4.12'
 }
