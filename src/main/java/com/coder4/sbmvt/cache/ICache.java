@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author coder4
@@ -17,7 +19,7 @@ import java.util.Set;
 public interface ICache<K, V> {
 
     /**
-     * Single get
+     * Single get from cache
      * @param key
      * @return
      */
@@ -25,11 +27,66 @@ public interface ICache<K, V> {
     V get(K key);
 
     /**
-     * Batch get
+     * Get from cache first, if not found get from func
+     * @param key
+     * @param func provide get without cache
+     * @return
+     */
+    @Nullable
+    default V cacheGet(K key, Function<K, V> func) {
+        V val = get(key);
+        if (val != null) {
+            return val;
+        } else {
+            val = func.apply(key);
+            put(key, val);
+            return val;
+        }
+    }
+
+    /**
+     * Batch get from cache
      * @param keys
      * @return
      */
     Map<K, V> batchGet(Collection<K> keys);
+
+    /**
+     * Batch get from cache first, if not found get from func
+     * @param keys
+     * @param func
+     * @return
+     */
+    default Map<K, V> batchCacheGet(Collection<K> keys, Function<Collection<K>, Map<K, V>> func) {
+        // hit map
+        Map<K, V> hitMap = batchGet(keys);
+
+        // miss keys
+        Collection<K> missedKeys = null;
+        if (hitMap == null || hitMap.isEmpty()) {
+            missedKeys = keys;
+        } else {
+            missedKeys = keys.stream().filter(k -> !hitMap.containsKey(k)).collect(Collectors.toSet());
+        }
+
+        // check if no miss keys
+        if (missedKeys == null || missedKeys.isEmpty()) {
+            return hitMap;
+        }
+
+        // fetch miss key
+        Map<K, V> missMap = func.apply(missedKeys);
+        missMap.entrySet().forEach(e -> put(e.getKey(), e.getValue()));
+
+        if (missMap == null || missMap.isEmpty()) {
+            // no miss map again
+            return hitMap;
+        } else {
+            // union & return
+            hitMap.putAll(missMap);
+            return hitMap;
+        }
+    }
 
     /**
      * Single put
