@@ -9,6 +9,7 @@ package com.coder4.sbmvt.cache;
 import net.rubyeye.xmemcached.MemcachedClient;
 import net.rubyeye.xmemcached.MemcachedClientBuilder;
 import net.rubyeye.xmemcached.XMemcachedClientBuilder;
+import net.rubyeye.xmemcached.exception.MemcachedException;
 import net.rubyeye.xmemcached.impl.KetamaMemcachedSessionLocator;
 import net.rubyeye.xmemcached.transcoders.CachedData;
 import net.rubyeye.xmemcached.transcoders.CompressionMode;
@@ -22,6 +23,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author coder4
@@ -178,6 +180,24 @@ public class MemcachedCache<K, V> implements ICache<K, V> {
                     valueTransformer.serialize(value));
         } catch (Exception e) {
             LOG.error("memcached put exception", e);
+        }
+    }
+
+    @Override
+    public void del(K key) {
+        try {
+            memcachedClient.delete(keyTransformer.getKey(key));
+        } catch (Exception e) {
+            LOG.error("memcached del exception", e);
+        }
+    }
+
+    @Override
+    public void clear() {
+        try {
+            memcachedClient.flushAll();
+        } catch (Exception e) {
+            LOG.error("memcached flushAll exception", e);
         }
     }
 }

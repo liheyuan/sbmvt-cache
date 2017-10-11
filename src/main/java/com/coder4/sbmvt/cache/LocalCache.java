@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author coder4
  */
-public class LocalCache<K, V > implements ICache<K, V> {
+public class LocalCache<K, V> implements ICache<K, V> {
 
     private Cache<K, V> gCache;
 
@@ -28,11 +28,11 @@ public class LocalCache<K, V > implements ICache<K, V> {
         if (capacity > 0) {
             builder.maximumSize(capacity);
         }
-        if(ttlSecs > 0) {
+        if (ttlSecs > 0) {
             builder.expireAfterWrite(ttlSecs, TimeUnit.SECONDS);
         }
 
-        this.gCache =  builder.build();
+        this.gCache = builder.build();
     }
 
     @Nullable
@@ -47,7 +47,7 @@ public class LocalCache<K, V > implements ICache<K, V> {
             return new HashMap<>();
         } else {
             Map<K, V> result = new HashMap<>();
-            for (K key: keys) {
+            for (K key : keys) {
                 V val = gCache.getIfPresent(key);
                 if (val != null) {
                     result.put(key, val);
@@ -60,5 +60,20 @@ public class LocalCache<K, V > implements ICache<K, V> {
     @Override
     public void put(K key, V value) {
         gCache.put(key, value);
+    }
+
+    @Override
+    public void del(K key) {
+        gCache.invalidate(key);
+    }
+
+    @Override
+    public void batchDel(Collection<K> keys) {
+        gCache.invalidateAll(keys);
+    }
+
+    @Override
+    public void clear() {
+        gCache.invalidateAll();
     }
 }

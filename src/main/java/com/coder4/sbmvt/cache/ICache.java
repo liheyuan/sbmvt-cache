@@ -20,6 +20,7 @@ public interface ICache<K, V> {
 
     /**
      * Single get from cache
+     *
      * @param key
      * @return
      */
@@ -28,6 +29,7 @@ public interface ICache<K, V> {
 
     /**
      * Get from cache first, if not found get from func
+     *
      * @param key
      * @param func provide get without cache
      * @return
@@ -46,6 +48,7 @@ public interface ICache<K, V> {
 
     /**
      * Batch get from cache
+     *
      * @param keys
      * @return
      */
@@ -53,6 +56,7 @@ public interface ICache<K, V> {
 
     /**
      * Batch get from cache first, if not found get from func
+     *
      * @param keys
      * @param func
      * @return
@@ -90,11 +94,33 @@ public interface ICache<K, V> {
 
     /**
      * Single put
+     *
      * @param key
      * @param value
      */
     void put(K key, V value);
 
+    /**
+     * Delete entry form cache
+     *
+     * @param key
+     */
+    void del(K key);
 
+    /**
+     * Delete entry(s) form cache
+     *
+     * @param keys keys to delete
+     */
+    default void batchDel(Collection<K> keys) {
+        if (keys != null) {
+            keys.stream().forEach(key -> del(key));
+        }
+    }
+
+    /**
+     * delete all entry(s) in cache
+     */
+    void clear();
 
 }
